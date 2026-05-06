@@ -1,0 +1,75 @@
+<template>
+    <lightning-card title="Member DashBoard ">
+        
+        <!--  BUTTON BAR -->
+        <div class="slds-grid slds-grid_align-spread slds-m-bottom_small">
+
+            <!-- LEFT -->
+            <lightning-button
+                label="Add Member"
+                icon-name="utility:user"
+                variant="brand"
+                onclick={openCreateModal}>
+            </lightning-button>
+
+        </div>
+
+        <!--  SEARCH -->
+        <lightning-input
+            type="search"
+            label="Search Member"
+            oninput={handleSearchChange}>
+        </lightning-input>
+       <!--  TABLE -->
+        <lightning-datatable
+            key-field="Id"
+            data={members}
+            columns={columns}
+            onrowaction={handleRowAction}
+            onrowselection={handleRowSelection}>
+        </lightning-datatable>
+
+        
+        <!-- Back button -->
+        <lightning-button 
+        label="Back"
+        variant="neutral"
+        onclick={goBack}>
+       </lightning-button>
+
+   <template if:true={isOpen}>
+    <section class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2>Add Member</h2>
+            </header>
+            
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                <lightning-input label="Member Name" onchange={handleMemberName}></lightning-input>
+                <lightning-combobox
+                       label="Select Family"
+                       value={selectedFamilyId}
+                       options={familyOptions}
+                       onchange={handleFamilyChange}>
+                </lightning-combobox>
+                <lightning-input label="Address" onchange={handleAddress}></lightning-input>
+                <lightning-input type="number" label="Age" onchange={handleAge}></lightning-input>
+                <lightning-input type="tel" label="Phone" onchange={handlePhone}></lightning-input>
+
+            </div>
+
+            <footer class="slds-modal__footer">
+                <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
+                <lightning-button variant="brand" label="Save" onclick={saveMember}></lightning-button>
+            </footer>
+
+        </div>
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template> 
+ </lightning-card>
+</template>
