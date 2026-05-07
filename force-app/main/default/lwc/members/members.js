@@ -1,7 +1,6 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, wire } from 'lwc';
 import createMember from '@salesforce/apex/MemberController.createMember';
 import searchFamily from '@salesforce/apex/FamilyController.searchFamily'; 
-import { wire } from 'lwc';
 import getMembersByFamily from '@salesforce/apex/MemberController.getMembersByFamily';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
@@ -20,6 +19,7 @@ export default class Member extends LightningElement {
     age;
     phone = '';
     editRecordId;
+    selectedFamilyName = '';
 
     familyOptions = [];
     columns = [
@@ -40,20 +40,6 @@ export default class Member extends LightningElement {
     }
 ];
 
-    @wire(getMembersByFamily, { 
-    familyId: '$selectedFamilyId',
-    searchKey: '$searchKey'
-})
-wiredMembers(result) {
-    this.wiredMemberResult = result;
-
-    if (result.data) {
-        this.members = result.data;
-    } else if (result.error) {
-        console.error(result.error);
-    }
-}
-
     connectedCallback(){
         searchFamily({ searchKey: '' })
             .then(result => {
@@ -65,6 +51,17 @@ wiredMembers(result) {
             .catch(error => {
                 console.error(error);
             });
+
+            if(this.selectedFamilyId){
+
+            const selectedFamily = result.find(
+                f => f.Id === this.selectedFamilyId
+            );
+
+            if(selectedFamily){
+                this.selectedFamilyName = selectedFamily.Name;
+            }
+        }
     }
 
     handleRowAction(event) {
@@ -111,15 +108,50 @@ wiredMembers(result) {
 
    wiredMemberResult;
 
-@wire(getMembersByFamily, { familyId: '$selectedFamilyId' ,  searchKey: '$searchKey' })
+@wire(getMembersByFamily, { 
+    familyId: '$selectedFamilyId',
+    searchKey: '$searchKey'
+})
 wiredMembers(result) {
     this.wiredMemberResult = result;
 
     if (result.data) {
         this.members = result.data;
+        console.log('DATA:', result.data);
     } else if (result.error) {
         console.error(result.error);
     }
+}
+
+connectedCallback(){
+
+    console.log('COMPONENT LOADED');
+
+    searchFamily({ searchKey: '' })
+        .then(result => {
+
+            // family dropdown options
+            this.familyOptions = result.map(f => ({
+                label: f.Name,
+                value: f.Id
+            }));
+
+            // selected family name show
+            if(this.selectedFamilyId){
+
+                const selectedFamily = result.find(
+                    f => f.Id === this.selectedFamilyId
+                );
+
+                if(selectedFamily){
+                    this.selectedFamilyName = selectedFamily.Name;
+                }
+            }
+
+        })
+        .catch(error => {
+            console.error(error);
+        });
 }
 
 
@@ -141,10 +173,12 @@ wiredMembers(result) {
         this.isOpen = false; // optional but useful
     }
 
-     handleSearchChange(event) {
-        this.searchKey = event.target.value;
-        console.log(this.searchKey);
-    }
+    handleSearchChange(event) {
+    console.log('INPUT WORKING');  
+    console.log(event.target.value);
+
+    this.searchKey = event.target.value;
+}
 
 
     goBack(){

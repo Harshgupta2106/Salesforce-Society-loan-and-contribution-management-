@@ -16,10 +16,12 @@
 
         <!--  SEARCH -->
         <lightning-input
-            type="search"
-            label="Search Member"
-            oninput={handleSearchChange}>
-        </lightning-input>
+        type="search"
+        label="Search Member"
+        value={searchKey}
+        onchange={handleSearchChange}>
+    </lightning-input>
+    
        <!--  TABLE -->
         <lightning-datatable
             key-field="Id"
@@ -29,7 +31,6 @@
             onrowselection={handleRowSelection}>
         </lightning-datatable>
 
-        
         <!-- Back button -->
         <lightning-button 
         label="Back"
@@ -49,12 +50,11 @@
             <div class="slds-modal__content slds-p-around_medium">
 
                 <lightning-input label="Member Name" onchange={handleMemberName}></lightning-input>
-                <lightning-combobox
-                       label="Select Family"
-                       value={selectedFamilyId}
-                       options={familyOptions}
-                       onchange={handleFamilyChange}>
-                </lightning-combobox>
+                                <lightning-input
+                                    label="Family Selected"
+                                    value={selectedFamilyName}
+                                    disabled>
+                                </lightning-input>
                 <lightning-input label="Address" onchange={handleAddress}></lightning-input>
                 <lightning-input type="number" label="Age" onchange={handleAge}></lightning-input>
                 <lightning-input type="tel" label="Phone" onchange={handlePhone}></lightning-input>

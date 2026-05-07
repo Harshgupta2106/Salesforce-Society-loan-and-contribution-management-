@@ -46,7 +46,7 @@
     </template>
 
 
-    <!-- ================= MODAL (ALWAYS OUTSIDE) ================= -->
+    <!-- ================= MODAL ================= -->
     <template if:true={isModalOpen}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -57,27 +57,69 @@
 
                 <div class="slds-modal__content slds-p-around_medium">
 
+                    <!-- Family Name -->
                     <lightning-input
                         label="Family Name"
                         value={familyName}
-                        required=""
+                        required
                         onchange={handleNameChange}>
                     </lightning-input>
 
-                    <!-- family head  -->
-                   <lightning-input label="Family Head Name" onchange={handleHeadChange}></lightning-input>
 
-                   <lightning-input label="Head Address" onchange={handleHeadAddress}></lightning-input>
+                    <!-- ================= CREATE MODE ================= -->
+                    <template if:false={editRecordId}>
 
-                   <lightning-input type="number" label="Head Age" onchange={handleHeadAge}></lightning-input>
+                        <lightning-input
+                            label="Family Head"
+                            value={familyHeadName}
+                            onchange={handleHeadInput}>
+                        </lightning-input>
 
-                   <lightning-input type="tel" label="Head Phone" onchange={handleHeadPhone}></lightning-input>
+                        <lightning-input
+                            label="Head Address"
+                            onchange={handleHeadAddress}>
+                        </lightning-input>
+
+                        <lightning-input
+                            type="number"
+                            label="Head Age"
+                            onchange={handleHeadAge}>
+                        </lightning-input>
+
+                        <lightning-input
+                            type="tel"
+                            label="Head Phone"
+                            onchange={handleHeadPhone}>
+                        </lightning-input>
+
+                    </template>
+
+
+                    <!-- ================= EDIT MODE ================= -->
+                    <template if:true={editRecordId}>
+
+                        <lightning-combobox
+                            label="Select Family Head"
+                            value={selectedHeadId}
+                            options={memberOptions}
+                            onchange={handleHeadChange}>
+                        </lightning-combobox>
+
+                    </template>
 
                 </div>
 
                 <footer class="slds-modal__footer">
-                    <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
-                    <lightning-button variant="brand" label="Save" onclick={saveFamily}></lightning-button>
+                    <lightning-button
+                        label="Cancel"
+                        onclick={closeModal}>
+                    </lightning-button>
+
+                    <lightning-button
+                        variant="brand"
+                        label="Save"
+                        onclick={saveFamily}>
+                    </lightning-button>
                 </footer>
 
             </div>
