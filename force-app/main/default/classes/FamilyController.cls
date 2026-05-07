@@ -47,9 +47,24 @@ public static void createFamilyWithHead(
 }
 
    @AuraEnabled
-public static void updateFamily(Id familyId, String familyName){
-    Family__c fam = [SELECT Id FROM Family__c WHERE Id = :familyId];
-    fam.Name = familyName;
+public static void updateFamily(String familyId, String familyName, String headName){
+
+    // 1. Update Family Name
+    Family__c fam = new Family__c(
+        Id = familyId,
+        Name = familyName
+    );
+    update fam;
+
+    // 2. Create new head member
+    Member__c newHead = new Member__c(
+        Name = headName,
+        Family__c = familyId
+    );
+    insert newHead;
+
+    // 3. Update head lookup
+    fam.FamilyHead__c = newHead.Id;
     update fam;
 }
 

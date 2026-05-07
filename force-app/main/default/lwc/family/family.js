@@ -20,6 +20,7 @@ export default class Family extends LightningElement {
     headAge;
     headPhone = '';
     editRecordId = null;
+    
 columns = [
     { label: 'Family Name', fieldName: 'Name' },
     { label: 'Family Head', fieldName: 'FamilyHeadName' },
@@ -30,7 +31,9 @@ columns = [
         typeAttributes: {
             label: 'View Member',
             name: 'view_member',
-            variant: 'brand'
+            variant: 'brand',
+            iconName:'standard:groups',
+            iconPosition:'left'
         }
     },
 
@@ -171,7 +174,8 @@ columns = [
 
         updateFamily({
             familyId: this.editRecordId,
-            familyName: this.familyName
+            familyName: this.familyName,
+            headName: this.familyHeadName
         })
         .then(() => {
             this.showToast('Success', 'Family Updated', 'success');
