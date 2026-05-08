@@ -49,15 +49,15 @@
 
             <div class="slds-modal__content slds-p-around_medium">
 
-                <lightning-input label="Member Name" onchange={handleMemberName}></lightning-input>
+                <lightning-input label="Member Name" value={memberName} onchange={handleMemberName}></lightning-input>
                                 <lightning-input
                                     label="Family Selected"
                                     value={selectedFamilyName}
                                     disabled>
                                 </lightning-input>
-                <lightning-input label="Address" onchange={handleAddress}></lightning-input>
-                <lightning-input type="number" label="Age" onchange={handleAge}></lightning-input>
-                <lightning-input type="tel" label="Phone" onchange={handlePhone}></lightning-input>
+                <lightning-input label="Address"  value={address} onchange={handleAddress}></lightning-input>
+                <lightning-input type="number" label="Age"  value={age} onchange={handleAge}></lightning-input>
+                <lightning-input type="tel" label="Phone" value={phone} onchange={handlePhone}></lightning-input>
 
             </div>
 
@@ -71,5 +71,62 @@
 
     <div class="slds-backdrop slds-backdrop_open"></div>
 </template> 
+
+        <!-- VIEW MEMBER MODAL -->
+
+        <template if:true={showViewModal}>
+
+            <section class="slds-modal slds-fade-in-open">
+
+                <div class="slds-modal__container">
+
+                    <header class="slds-modal__header">
+
+                        <h2 class="slds-text-heading_medium">
+                            Member Details
+                        </h2>
+
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+
+                        <p>
+                            <strong>Name:</strong>
+                            {viewMemberData.Name}
+                        </p> <br> <br>
+
+                        <p>
+                            <strong>Address:</strong>
+                            {viewMemberData.Address__c}
+                        </p> <br> <br>
+
+                        <p>
+                            <strong>Age:</strong>
+                            {viewMemberData.Age__c}
+                        </p> <br> <br>
+
+                        <p>
+                            <strong>Phone:</strong>
+                            {viewMemberData.Phone__c}
+                        </p>
+
+                    </div>
+
+                    <footer class="slds-modal__footer">
+
+                        <lightning-button
+                            label="Close"
+                            onclick={closeViewModal}>
+                        </lightning-button>
+
+                    </footer>
+
+                </div>
+
+            </section>
+
+            <div class="slds-backdrop slds-backdrop_open"></div>
+
+        </template>
  </lightning-card>
 </template>

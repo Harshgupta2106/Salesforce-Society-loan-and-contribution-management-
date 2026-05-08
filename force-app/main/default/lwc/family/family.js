@@ -7,6 +7,7 @@ import deleteFamily from '@salesforce/apex/FamilyController.deleteFamily';
 import LightningConfirm from 'lightning/confirm';
 import getMembersByFamily from '@salesforce/apex/MemberController.getMembersByFamily';
 import updateFamilyHead from '@salesforce/apex/FamilyController.updateFamilyHead';
+import updateFamily from '@salesforce/apex/FamilyController.updateFamily';
 
 export default class Family extends LightningElement {
 
@@ -246,37 +247,44 @@ export default class Family extends LightningElement {
 
         if (this.editRecordId) {
 
-            updateFamilyHead({
-                familyId: this.editRecordId,
-                memberId: this.selectedHeadId
-            })
-            .then(() => {
+    updateFamily({
+        familyId: this.editRecordId,
+        familyName: this.familyName
+    })
+    .then(() => {
 
-                this.showToast(
-                    'Success',
-                    'Family Updated',
-                    'success'
-                );
+        return updateFamilyHead({
+            familyId: this.editRecordId,
+            memberId: this.selectedHeadId
+        });
 
-                this.closeModal();
+    })
+    .then(() => {
 
-                this.editRecordId = null;
+        this.showToast(
+            'Success',
+            'Family Updated',
+            'success'
+        );
 
-                return refreshApex(this.wiredFamilyResult);
+        this.closeModal();
 
-            })
-            .catch(error => {
+        this.editRecordId = null;
 
-                console.error(error);
+        return refreshApex(this.wiredFamilyResult);
 
-                this.showToast(
-                    'Error',
-                    error.body.message,
-                    'error'
-                );
-            });
+    })
+    .catch(error => {
 
-        }
+        console.error(error);
+
+        this.showToast(
+            'Error',
+            error.body.message,
+            'error'
+        );
+    });
+}
 
         // ================= CREATE MODE =================
 

@@ -20,6 +20,8 @@ export default class Member extends LightningElement {
     phone = '';
     editRecordId;
     selectedFamilyName = '';
+    showViewModal = false;
+    viewMemberData;
 
     familyOptions = [];
     columns = [
@@ -69,6 +71,13 @@ export default class Member extends LightningElement {
     const row = event.detail.row;
 
     switch(actionName) {
+        case 'view':
+
+        this.viewMemberData = row;
+
+        this.showViewModal = true;
+
+        break;
 
         case 'edit':
             this.editRecordId = row.Id;
@@ -184,6 +193,11 @@ connectedCallback(){
     goBack(){
     this.dispatchEvent(new CustomEvent('back'));
     }
+
+    closeViewModal(){
+
+    this.showViewModal = false;
+}
 
     saveMember(){
 
