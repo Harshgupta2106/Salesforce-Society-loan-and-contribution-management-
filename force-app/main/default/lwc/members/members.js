@@ -22,6 +22,12 @@ export default class Member extends LightningElement {
     selectedFamilyName = '';
     showViewModal = false;
     viewMemberData;
+    showTransactionModal = false;
+    selectedMemberId;
+    selectedMemberName = '';
+    paymentDate;
+    type = '';
+    amount;
 
     familyOptions = [];
     columns = [
@@ -36,10 +42,16 @@ export default class Member extends LightningElement {
             rowActions: [
                 { label: 'View', name: 'view' },
                 { label: 'Edit', name: 'edit' },
-                { label: 'Delete', name: 'delete' }
+                { label: 'Delete', name: 'delete' },
+                { label: 'Add Transaction', name: 'transaction' }
             ]
         }
     }
+];
+
+    typeOptions = [
+    { label: 'Contribution', value: 'Contribution' },
+    { label: 'EMI', value: 'EMI' }
 ];
 
     connectedCallback(){
@@ -91,6 +103,16 @@ export default class Member extends LightningElement {
         case 'delete':
             this.deleteMemberRecord(row.Id);
             break;
+
+        case 'transaction':
+
+                this.selectedMemberId = row.Id;
+
+                this.selectedMemberName = row.Name;
+
+                this.showTransactionModal = true;
+
+                break;
     }
 }
 
@@ -173,6 +195,30 @@ connectedCallback(){
     handleAge(e){ this.age = e.target.value; }
     handlePhone(e){ this.phone = e.target.value; }
 
+                //transaction method
+
+            handlePaymentDate(event){
+                this.paymentDate = event.target.value;
+            }
+
+            handleType(event){
+
+                this.type = event.detail.value;
+                if(this.type === 'Contribution'){
+
+                    this.amount = 500;
+                }
+            }
+
+            handleAmount(event){
+                this.amount = event.target.value;
+            }
+
+            closeTransactionModal(){
+
+                this.showTransactionModal = false;
+            }
+
     handleFamilyChange(event){
         this.selectedFamilyId = event.detail.value;
     }
@@ -245,6 +291,30 @@ connectedCallback(){
         this.age = null;
         this.phone = '';
     }
+
+    // Payment Save
+
+    payTransaction(){
+
+    // contribution validation
+    if(this.type === 'Contribution' && this.amount < 500){
+
+        this.showToast(
+            'Error',
+            'Contribution amount cannot be less than 500',
+            'error'
+        );
+
+        return;
+    }
+    this.showToast(
+        'Success',
+        'Transaction Paid Successfully',
+        'success'
+    );
+
+    this.closeTransactionModal();
+}
 
     showToast(title, message, variant){
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));

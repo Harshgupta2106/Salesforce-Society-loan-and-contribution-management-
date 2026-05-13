@@ -32,7 +32,7 @@
         </lightning-datatable>
 
         <!-- Back button -->
-        <lightning-button 
+        <br><lightning-button 
         label="Back"
         variant="neutral"
         onclick={goBack}>
@@ -128,5 +128,74 @@
             <div class="slds-backdrop slds-backdrop_open"></div>
 
         </template>
+
+        <!-- Transaction POP UP -->
+
+<template if:true={showTransactionModal}>
+
+    <section class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+
+                <h2 class="slds-text-heading_medium">
+                    Add Transaction
+                </h2>
+
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                        <lightning-input
+                    label="Member Name"
+                    value={selectedMemberName}
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    type="date"
+                    label="Payment Date"
+                    onchange={handlePaymentDate}>
+                </lightning-input>
+
+                <lightning-combobox
+                    label="Type"
+                    options={typeOptions}
+                    onchange={handleType}>
+                </lightning-combobox>
+
+                <lightning-input
+                    type="number"
+                    label="Amount"
+                    value={amount}
+                    onchange={handleAmount}>
+                </lightning-input>
+
+                    </div>
+
+                    <footer class="slds-modal__footer">
+
+                        <lightning-button
+                            label="Cancel"
+                            onclick={closeTransactionModal}>
+                        </lightning-button>
+
+                        <lightning-button
+                            variant="brand"
+                            label="Pay"
+                            onclick={payTransaction}>
+                        </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+
  </lightning-card>
 </template>
