@@ -7,6 +7,8 @@ import { refreshApex } from '@salesforce/apex';
 import deleteMember from '@salesforce/apex/MemberController.deleteMember';
 import updateMember from '@salesforce/apex/MemberController.updateMember';
 import LightningConfirm from 'lightning/confirm';
+import createTransaction
+from '@salesforce/apex/TransactionController.createTransaction';
 
 export default class Member extends LightningElement {
 
@@ -28,6 +30,7 @@ export default class Member extends LightningElement {
     paymentDate;
     type = '';
     amount;
+    showTransactionComponent = false;
 
     familyOptions = [];
     columns = [
@@ -234,7 +237,16 @@ connectedCallback(){
 
     this.searchKey = event.target.value;
 }
+ 
+//  transaction dashboard 
+    openTransactionDashboard(){
 
+    this.showTransactionComponent = true;
+}
+    handleTransactionBack(){
+
+    this.showTransactionComponent = false;
+}
 
     goBack(){
     this.dispatchEvent(new CustomEvent('back'));
@@ -294,9 +306,9 @@ connectedCallback(){
 
     // Payment Save
 
-    payTransaction(){
+   payTransaction(){
 
-    // contribution validation
+    // validation
     if(this.type === 'Contribution' && this.amount < 500){
 
         this.showToast(
@@ -307,13 +319,40 @@ connectedCallback(){
 
         return;
     }
-    this.showToast(
-        'Success',
-        'Transaction Paid Successfully',
-        'success'
-    );
 
-    this.closeTransactionModal();
+    createTransaction({
+
+        memberId: this.selectedMemberId,
+        paymentDate: this.paymentDate,
+        type: this.type,
+        amount: this.amount
+    })
+
+    .then(() => {
+
+        this.showToast(
+            'Success',
+            'Transaction Paid Successfully',
+            'success'
+        );
+        
+        this.dispatchEvent(
+    new CustomEvent('refreshtransactions')
+);
+
+        this.closeTransactionModal();
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        this.showToast(
+            'Error',
+            error.body.message,
+            'error'
+        );
+    });
 }
 
     showToast(title, message, variant){
