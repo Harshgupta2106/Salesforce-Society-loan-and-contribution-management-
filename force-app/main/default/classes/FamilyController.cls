@@ -83,5 +83,15 @@ public static void updateFamily(String familyId, String familyName, String headN
 
         update fam;
     }
+    @AuraEnabled
+public static void deleteFamilies(List<Id> familyIds){
+
+    delete [
+
+        SELECT Id
+        FROM Family__c
+        WHERE Id IN :familyIds
+    ];
+}
 
 }

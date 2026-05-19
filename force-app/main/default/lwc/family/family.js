@@ -23,6 +23,8 @@ export default class Family extends LightningElement {
     selectedHeadId;
 
     @track isModalOpen = false;
+    selectedFamilyIds = [];
+    showDeleteButton = false;
 
     familyName = '';
     familyHeadName = '';
@@ -165,6 +167,48 @@ export default class Family extends LightningElement {
                 });
         }
     }
+
+    handleRowSelection(event){
+
+    const rows = event.detail.selectedRows;
+
+    this.selectedFamilyIds = rows.map(row => row.Id);
+
+    this.showDeleteButton =
+        this.selectedFamilyIds.length > 0;
+}
+
+async deleteSelectedFamilies(){
+
+    const result = await LightningConfirm.open({
+
+        message: 'Delete selected families?',
+        variant: 'header',
+        label: 'Confirm Delete'
+    });
+
+    if(result){
+
+        deleteFamilies({
+            familyIds: this.selectedFamilyIds
+        })
+
+        .then(() => {
+
+            this.showToast(
+                'Success',
+                'Families Deleted',
+                'success'
+            );
+
+            this.selectedFamilyIds = [];
+
+            this.showDeleteButton = false;
+
+            return refreshApex(this.wiredFamilyResult);
+        });
+    }
+}
 
     // ================= SEARCH =================
 

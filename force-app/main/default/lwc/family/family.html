@@ -15,19 +15,39 @@
                 </lightning-button>
             </div>
 
-            <!-- SEARCH -->
-            <lightning-input
-                type="search"
-                label="Search Family"
-                onchange={handleSearchChange}>
-            </lightning-input>
+          <!-- DELETE BUTTON -->
+
+                    <div class="slds-grid slds-grid_align-end slds-m-bottom_small">
+
+                        <template if:true={showDeleteButton}>
+
+                            <lightning-button
+                                label="Delete Selected"
+                                icon-name="utility:delete"
+                                variant="destructive"
+                                onclick={deleteSelectedFamilies}>
+                            </lightning-button>
+
+                        </template>
+
+                    </div>
+
+                    <!-- SEARCH -->
+
+                    <lightning-input
+                        type="search"
+                        label="Search Family"
+                        onchange={handleSearchChange}>
+                    </lightning-input>
+
 
             <!-- TABLE -->
             <lightning-datatable
                 key-field="Id"
                 data={families}
                 columns={columns}
-                onrowaction={handleRowAction}>
+                onrowaction={handleRowAction}
+                onrowselection={handleRowSelection}>
             </lightning-datatable>
 
         </lightning-card>

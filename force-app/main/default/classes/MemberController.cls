@@ -20,12 +20,23 @@ public static void createMember(String name, Id familyId, String address, Intege
         String key = '%' + (searchKey == null ? '' : searchKey) + '%';
 
         return [
-            SELECT Id, Name, Address__c, Age__c, Phone__c
+            SELECT Id, Name, Address__c, Age__c, Phone__c,total_contribution__c
             FROM Member__c
             WHERE Family__c = :familyId
             AND Name LIKE :key
             ORDER BY Name
         ];
+}
+
+@AuraEnabled
+public static void deleteMembers(List<Id> memberIds){
+
+    delete [
+
+        SELECT Id
+        FROM Member__c
+        WHERE Id IN :memberIds
+    ];
 }
 
 

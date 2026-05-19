@@ -9,6 +9,8 @@ import updateMember from '@salesforce/apex/MemberController.updateMember';
 import LightningConfirm from 'lightning/confirm';
 import createTransaction
 from '@salesforce/apex/TransactionController.createTransaction';
+import deleteMembers
+from '@salesforce/apex/MemberController.deleteMembers';
 
 export default class Member extends LightningElement {
 
@@ -31,6 +33,8 @@ export default class Member extends LightningElement {
     type = '';
     amount;
     showTransactionComponent = false;
+    selectedMemberIds = [];
+    showDeleteButton = false;
 
     familyOptions = [];
     columns = [
@@ -38,6 +42,11 @@ export default class Member extends LightningElement {
     { label: 'Address', fieldName: 'Address__c' },
     { label: 'Age', fieldName: 'Age__c', type: 'number' },
     { label: 'Phone', fieldName: 'Phone__c' },
+    {
+        label: 'Total Contribution',
+        fieldName: 'total_contribution__c',
+        type: 'currency'
+    },
 
     {
         type: 'action',
@@ -237,7 +246,64 @@ connectedCallback(){
 
     this.searchKey = event.target.value;
 }
- 
+
+    //all delete
+    handleRowSelection(event){
+
+    const rows = event.detail.selectedRows;
+
+    this.selectedMemberIds = rows.map(
+        row => row.Id
+    );
+
+    this.showDeleteButton =
+        this.selectedMemberIds.length > 0;
+}
+async deleteSelectedMembers(){
+
+    const result = await LightningConfirm.open({
+
+        message: 'Delete selected members?',
+        variant: 'header',
+        label: 'Confirm Delete'
+    });
+
+    if(result){
+
+        deleteMembers({
+            memberIds: this.selectedMemberIds
+        })
+
+        .then(() => {
+
+            this.showToast(
+                'Success',
+                'Members Deleted',
+                'success'
+            );
+
+            this.selectedMemberIds = [];
+
+            this.showDeleteButton = false;
+
+            return refreshApex(
+                this.wiredMemberResult
+            );
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            this.showToast(
+                'Error',
+                error.body.message,
+                'error'
+            );
+        });
+    }
+} 
+
 //  transaction dashboard 
     openTransactionDashboard(){
 
@@ -341,6 +407,7 @@ connectedCallback(){
 );
 
         this.closeTransactionModal();
+        return refreshApex(this.wiredMemberResult);
     })
 
     .catch(error => {

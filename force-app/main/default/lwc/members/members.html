@@ -27,6 +27,18 @@
             </div>
 
             <!-- SEARCH -->
+             <!-- all delete button -->
+            <template if:true={showDeleteButton}>
+
+                <lightning-button
+                    label="Delete Selected"
+                    icon-name="utility:delete"
+                    variant="destructive"
+                    onclick={deleteSelectedMembers}>
+                </lightning-button>
+
+            </template>
+
             <lightning-input
                 type="search"
                 label="Search Member"
@@ -163,6 +175,13 @@
                             <p>
                                 <strong>Phone : </strong>
                                 <b>{viewMemberData.Phone__c}</b> 
+                            </p>
+
+                            <br><br>
+
+                            <p>
+                                <strong>Total Contribution : </strong>
+                                <b>{viewMemberData.total_contribution__c}</b>
                             </p>
 
                         </div>
