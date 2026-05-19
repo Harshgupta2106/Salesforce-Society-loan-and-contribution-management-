@@ -228,6 +228,18 @@ async deleteSelectedFamilies(){
     }
 
     handleHeadPhone(event) {
+        const phoneRegex = /^[0-9]{10}$/;
+
+            if(!phoneRegex.test(this.phone)){
+
+                this.showToast(
+                    'Error',
+                    'Phone number must be exactly 10 digits',
+                    'error'
+                );
+
+                return;
+            }
         this.headPhone = event.target.value;
     }
 

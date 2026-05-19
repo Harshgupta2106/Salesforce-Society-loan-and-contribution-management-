@@ -324,6 +324,18 @@ async deleteSelectedMembers(){
 }
 
     saveMember(){
+        const phoneRegex = /^[0-9]{10}$/;
+
+            if(!phoneRegex.test(this.phone)){
+
+                        this.showToast(
+                            'Error',
+                            'Phone number must be exactly 10 digits',
+                            'error'
+                        );
+
+                        return;
+            }
 
     if(!this.memberName){
         this.showToast('Error','Member Name required','error');
