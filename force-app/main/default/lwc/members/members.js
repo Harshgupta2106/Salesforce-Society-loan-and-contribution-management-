@@ -1,20 +1,21 @@
 import { LightningElement, api, wire } from 'lwc';
 import createMember from '@salesforce/apex/MemberController.createMember';
-import searchFamily from '@salesforce/apex/FamilyController.searchFamily'; 
+import searchFamily from '@salesforce/apex/FamilyController.searchFamily';
 import getMembersByFamily from '@salesforce/apex/MemberController.getMembersByFamily';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 import deleteMember from '@salesforce/apex/MemberController.deleteMember';
 import updateMember from '@salesforce/apex/MemberController.updateMember';
 import LightningConfirm from 'lightning/confirm';
-import createTransaction
-from '@salesforce/apex/TransactionController.createTransaction';
-import deleteMembers
-from '@salesforce/apex/MemberController.deleteMembers';
+import createTransaction from '@salesforce/apex/TransactionController.createTransaction';
+import deleteMembers from '@salesforce/apex/MemberController.deleteMembers';
+import createLoan from '@salesforce/apex/LoanController.createLoan';
+import getActiveLoan from '@salesforce/apex/MemberController.getActiveLoan';
+import updateLoanEMI from '@salesforce/apex/LoanController.updateLoanEMI';
 
 export default class Member extends LightningElement {
 
-     members = [];
+    members = [];
     @api selectedFamilyId;
     @api isOpen = false;
     searchKey = '';
@@ -35,88 +36,152 @@ export default class Member extends LightningElement {
     showTransactionComponent = false;
     selectedMemberIds = [];
     showDeleteButton = false;
-
+    showLoanDashboard = false;
+    showLoanModal = false;
+    loanAmount;
+    calculatedEMI;
+    activeLoanId;
     familyOptions = [];
-    columns = [
-    { label: 'Name', fieldName: 'Name' },
-    { label: 'Address', fieldName: 'Address__c' },
-    { label: 'Age', fieldName: 'Age__c', type: 'number' },
-    { label: 'Phone', fieldName: 'Phone__c' },
-    {
-        label: 'Total Contribution',
-        fieldName: 'total_contribution__c',
-        type: 'currency'
-    },
 
-    {
-        type: 'action',
-        typeAttributes: {
-            rowActions: [
-                { label: 'View', name: 'view' },
-                { label: 'Edit', name: 'edit' },
-                { label: 'Delete', name: 'delete' },
-                { label: 'Add Transaction', name: 'transaction' }
-            ]
+    columns = [
+
+        { label: 'Name', fieldName: 'Name' },
+
+        { label: 'Address', fieldName: 'Address__c' },
+
+        { label: 'Age', fieldName: 'Age__c', type: 'number' },
+
+        { label: 'Phone', fieldName: 'Phone__c' },
+
+        {
+            label: 'Total Contribution',
+            fieldName: 'total_contribution__c',
+            type: 'currency'
+        },
+
+        {
+            label: 'Apply Loan',
+            type: 'button',
+            typeAttributes: {
+                label: 'Apply Loan',
+                name: 'apply_loan',
+                variant: 'brand'
+            }
+        },
+
+        {
+            type: 'action',
+
+            typeAttributes: {
+
+                rowActions: [
+
+                    { label: 'View', name: 'view' },
+
+                    { label: 'Edit', name: 'edit' },
+
+                    { label: 'Delete', name: 'delete' },
+
+                    { label: 'Add Transaction', name: 'transaction' }
+                ]
+            }
         }
-    }
-];
+    ];
 
     typeOptions = [
-    { label: 'Contribution', value: 'Contribution' },
-    { label: 'EMI', value: 'EMI' }
-];
+
+        {
+            label: 'Contribution',
+            value: 'Contribution'
+        },
+
+        {
+            label: 'EMI',
+            value: 'EMI'
+        }
+    ];
+
+    // ================= CONNECTED CALLBACK =================
 
     connectedCallback(){
+
+        console.log('COMPONENT LOADED');
+
         searchFamily({ searchKey: '' })
-            .then(result => {
-                this.familyOptions = result.map(f => ({
-                    label: f.Name,
-                    value: f.Id
-                }));
-            })
-            .catch(error => {
-                console.error(error);
-            });
+
+        .then(result => {
+
+            this.familyOptions = result.map(f => ({
+
+                label: f.Name,
+
+                value: f.Id
+            }));
 
             if(this.selectedFamilyId){
 
-            const selectedFamily = result.find(
-                f => f.Id === this.selectedFamilyId
-            );
+                const selectedFamily = result.find(
 
-            if(selectedFamily){
-                this.selectedFamilyName = selectedFamily.Name;
+                    f => f.Id === this.selectedFamilyId
+                );
+
+                if(selectedFamily){
+
+                    this.selectedFamilyName =
+                        selectedFamily.Name;
+                }
             }
-        }
+        })
+
+        .catch(error => {
+
+            console.error(error);
+        });
     }
 
-    handleRowAction(event) {
-    const actionName = event.detail.action.name;
-    const row = event.detail.row;
+    // ================= TABLE ACTION =================
 
-    switch(actionName) {
-        case 'view':
+    handleRowAction(event){
 
-        this.viewMemberData = row;
+        const actionName =
+            event.detail.action.name;
 
-        this.showViewModal = true;
+        const row =
+            event.detail.row;
 
-        break;
+        switch(actionName){
 
-        case 'edit':
-            this.editRecordId = row.Id;
-            this.memberName = row.Name;
-            this.address = row.Address__c;
-            this.age = row.Age__c;
-            this.phone = row.Phone__c;
-            this.isOpen = true; // modal open
-            break;
+            case 'view':
 
-        case 'delete':
-            this.deleteMemberRecord(row.Id);
-            break;
+                this.viewMemberData = row;
 
-        case 'transaction':
+                this.showViewModal = true;
+
+                break;
+
+            case 'edit':
+
+                this.editRecordId = row.Id;
+
+                this.memberName = row.Name;
+
+                this.address = row.Address__c;
+
+                this.age = row.Age__c;
+
+                this.phone = row.Phone__c;
+
+                this.isOpen = true;
+
+                break;
+
+            case 'delete':
+
+                this.deleteMemberRecord(row.Id);
+
+                break;
+
+            case 'transaction':
 
                 this.selectedMemberId = row.Id;
 
@@ -125,170 +190,268 @@ export default class Member extends LightningElement {
                 this.showTransactionModal = true;
 
                 break;
+
+            case 'apply_loan':
+
+                this.selectedMemberId = row.Id;
+
+                this.selectedMemberName = row.Name;
+
+                this.showLoanModal = true;
+
+                break;
+        }
     }
-}
 
-   async deleteMemberRecord(memberId){
+    // ================= FETCH MEMBERS =================
 
-    const result = await LightningConfirm.open({
-        message: 'Are you sure you want to delete this member?',
-        variant: 'header',
-        label: 'Confirm Delete'
-    });
+    wiredMemberResult;
 
-    if(result){
-        deleteMember({ memberId })
-            .then(() => {
-                this.showToast('Success','Member Deleted','success');
-                return refreshApex(this.wiredMemberResult);
-            })
-            .catch(error => {
-                console.error(error);
-                this.showToast('Error', error.body.message, 'error');
-            });
+    @wire(getMembersByFamily, {
+
+        familyId: '$selectedFamilyId',
+
+        searchKey: '$searchKey'
+    })
+
+    wiredMembers(result){
+
+        this.wiredMemberResult = result;
+
+        if(result.data){
+
+            this.members = result.data;
+
+        } else if(result.error){
+
+            console.error(result.error);
+        }
     }
-}
 
-   wiredMemberResult;
+    // ================= SEARCH =================
 
-@wire(getMembersByFamily, { 
-    familyId: '$selectedFamilyId',
-    searchKey: '$searchKey'
-})
-wiredMembers(result) {
-    this.wiredMemberResult = result;
+    handleSearchChange(event){
 
-    if (result.data) {
-        this.members = result.data;
-        console.log('DATA:', result.data);
-    } else if (result.error) {
-        console.error(result.error);
+        this.searchKey = event.target.value;
     }
-}
 
-connectedCallback(){
+    // ================= INPUT =================
 
-    console.log('COMPONENT LOADED');
+    handleMemberName(e){
+        this.memberName = e.target.value;
+    }
 
-    searchFamily({ searchKey: '' })
-        .then(result => {
+    handleAddress(e){
+        this.address = e.target.value;
+    }
 
-            // family dropdown options
-            this.familyOptions = result.map(f => ({
-                label: f.Name,
-                value: f.Id
-            }));
+    handleAge(e){
+        this.age = e.target.value;
+    }
 
-            // selected family name show
-            if(this.selectedFamilyId){
+    handlePhone(e){
+        this.phone = e.target.value;
+    }
 
-                const selectedFamily = result.find(
-                    f => f.Id === this.selectedFamilyId
+    handlePaymentDate(event){
+
+        this.paymentDate = event.target.value;
+    }
+
+    // ================= TYPE =================
+
+    handleType(event){
+
+        this.type = event.detail.value;
+
+        // CONTRIBUTION
+        if(this.type === 'Contribution'){
+
+            this.amount = 500;
+
+            return;
+        }
+
+        // EMI
+        if(this.type === 'EMI'){
+
+            if(!this.selectedMemberId){
+
+                this.showToast(
+                    'Error',
+                    'Member not selected',
+                    'error'
                 );
 
-                if(selectedFamily){
-                    this.selectedFamilyName = selectedFamily.Name;
+                return;
+            }
+
+            getActiveLoan({
+
+                memberId: this.selectedMemberId
+
+            })
+
+            .then(result => {
+
+                console.log(
+                    'Loan Result => ',
+                    result
+                );
+
+                if(result){
+
+                    this.activeLoanId =
+                        result.Id;
+
+                    this.amount =
+                        result.EMI__c;
+
                 }
-            }
 
-        })
-        .catch(error => {
-            console.error(error);
-        });
-}
+                else{
 
+                    this.activeLoanId = null;
 
-    openCreateModal(){
-        this.isOpen = true;
-    }
+                    this.amount = null;
 
-    handleMemberName(e){ this.memberName = e.target.value; }
-    handleAddress(e){ this.address = e.target.value; }
-    handleAge(e){ this.age = e.target.value; }
-    handlePhone(e){ this.phone = e.target.value; }
-
-                //transaction method
-
-            handlePaymentDate(event){
-                this.paymentDate = event.target.value;
-            }
-
-            handleType(event){
-
-                this.type = event.detail.value;
-                if(this.type === 'Contribution'){
-
-                    this.amount = 500;
+                    this.showToast(
+                        'Error',
+                        'No active loan found',
+                        'error'
+                    );
                 }
-            }
+            })
 
-            handleAmount(event){
-                this.amount = event.target.value;
-            }
+            .catch(error => {
 
-            closeTransactionModal(){
+                console.error(error);
 
-                this.showTransactionModal = false;
-            }
-
-    handleFamilyChange(event){
-        this.selectedFamilyId = event.detail.value;
+                this.showToast(
+                    'Error',
+                    'Loan Fetch Failed',
+                    'error'
+                );
+            });
+        }
     }
 
-    closeModal(){
-        this.dispatchEvent(new CustomEvent('close'));
-        this.isOpen = false; // optional but useful
+    handleAmount(event){
+
+        this.amount = event.target.value;
     }
 
-    handleSearchChange(event) {
-    console.log('INPUT WORKING');  
-    console.log(event.target.value);
+    // ================= LOAN =================
 
-    this.searchKey = event.target.value;
-}
+    handleLoanAmount(event){
 
-    //all delete
-    handleRowSelection(event){
+        this.loanAmount = event.target.value;
 
-    const rows = event.detail.selectedRows;
+        if(this.loanAmount){
 
-    this.selectedMemberIds = rows.map(
-        row => row.Id
-    );
+            this.calculatedEMI =
+                (this.loanAmount / 24)
+                .toFixed(2);
+        }
+    }
 
-    this.showDeleteButton =
-        this.selectedMemberIds.length > 0;
-}
-async deleteSelectedMembers(){
+    applyLoan(){
 
-    const result = await LightningConfirm.open({
+        createLoan({
 
-        message: 'Delete selected members?',
-        variant: 'header',
-        label: 'Confirm Delete'
-    });
+            memberId: this.selectedMemberId,
 
-    if(result){
-
-        deleteMembers({
-            memberIds: this.selectedMemberIds
+            loanAmount: this.loanAmount
         })
 
         .then(() => {
 
             this.showToast(
                 'Success',
-                'Members Deleted',
+                'Loan Applied Successfully',
                 'success'
             );
 
-            this.selectedMemberIds = [];
+            this.closeLoanModal();
 
-            this.showDeleteButton = false;
+                    this.showLoanDashboard = false;
 
-            return refreshApex(
-                this.wiredMemberResult
+                    setTimeout(() => {
+
+                    this.showLoanDashboard = true;
+
+                    }, 100);
+        })
+
+        .catch(error => {
+
+            this.showToast(
+                'Error',
+                error.body.message,
+                'error'
             );
+        });
+    }
+
+    // ================= TRANSACTION =================
+
+    payTransaction(){
+
+        if(this.type === 'Contribution'
+            && this.amount < 500){
+
+            this.showToast(
+                'Error',
+                'Contribution cannot be less than ₹500',
+                'error'
+            );
+
+            return;
+        }
+
+        createTransaction({
+
+            memberId: this.selectedMemberId,
+
+            type: this.type,
+
+            amount: this.amount,
+
+            paymentDate: this.paymentDate
+        })
+
+        .then(() => {
+
+            if(this.type === 'EMI'
+                && this.activeLoanId){
+
+                return updateLoanEMI({
+
+                    loanId: this.activeLoanId
+                });
+            }
+        })
+
+        .then(() => {
+
+            this.showToast(
+                'Success',
+                'Payment Successful',
+                'success'
+            );
+                this.closeTransactionModal();
+
+                this.showLoanDashboard = false;
+
+                 setTimeout(() => {
+
+                 this.showLoanDashboard = true;
+
+                  }, 100);
+
+                return refreshApex(
+                    this.wiredMemberResult
+                );
         })
 
         .catch(error => {
@@ -302,139 +465,302 @@ async deleteSelectedMembers(){
             );
         });
     }
-} 
 
-//  transaction dashboard 
-    openTransactionDashboard(){
+    // ================= DELETE =================
 
-    this.showTransactionComponent = true;
-}
-    handleTransactionBack(){
+    async deleteMemberRecord(memberId){
 
-    this.showTransactionComponent = false;
-}
+        const result =
+            await LightningConfirm.open({
 
-    goBack(){
-    this.dispatchEvent(new CustomEvent('back'));
+            message:
+                'Are you sure you want to delete this member?',
+
+            variant: 'header',
+
+            label: 'Confirm Delete'
+        });
+
+        if(result){
+
+            deleteMember({ memberId })
+
+            .then(() => {
+
+                this.showToast(
+                    'Success',
+                    'Member Deleted',
+                    'success'
+                );
+
+                return refreshApex(
+                    this.wiredMemberResult
+                );
+            })
+
+            .catch(error => {
+
+                console.error(error);
+
+                this.showToast(
+                    'Error',
+                    error.body.message,
+                    'error'
+                );
+            });
+        }
+    }
+
+    // ================= MULTIPLE DELETE =================
+
+    handleRowSelection(event){
+
+        const rows =
+            event.detail.selectedRows;
+
+        this.selectedMemberIds =
+            rows.map(row => row.Id);
+
+        this.showDeleteButton =
+            this.selectedMemberIds.length > 0;
+    }
+
+    async deleteSelectedMembers(){
+
+        const result =
+            await LightningConfirm.open({
+
+            message:
+                'Delete selected members?',
+
+            variant: 'header',
+
+            label: 'Confirm Delete'
+        });
+
+        if(result){
+
+            deleteMembers({
+
+                memberIds:
+                    this.selectedMemberIds
+            })
+
+            .then(() => {
+
+                this.showToast(
+                    'Success',
+                    'Members Deleted',
+                    'success'
+                );
+
+                this.selectedMemberIds = [];
+
+                this.showDeleteButton = false;
+
+                return refreshApex(
+                    this.wiredMemberResult
+                );
+            })
+
+            .catch(error => {
+
+                console.error(error);
+
+                this.showToast(
+                    'Error',
+                    error.body.message,
+                    'error'
+                );
+            });
+        }
+    }
+
+    // ================= SAVE MEMBER =================
+
+    saveMember(){
+
+        const phoneRegex =
+            /^[0-9]{10}$/;
+
+        if(!phoneRegex.test(this.phone)){
+
+            this.showToast(
+                'Error',
+                'Phone number must be exactly 10 digits',
+                'error'
+            );
+
+            return;
+        }
+
+        if(!this.memberName){
+
+            this.showToast(
+                'Error',
+                'Member Name required',
+                'error'
+            );
+
+            return;
+        }
+
+        // UPDATE
+        if(this.editRecordId){
+
+            updateMember({
+
+                memberId: this.editRecordId,
+
+                name: this.memberName,
+
+                address: this.address,
+
+                age: this.age,
+
+                phone: this.phone
+            })
+
+            .then(() => {
+
+                this.showToast(
+                    'Success',
+                    'Member Updated',
+                    'success'
+                );
+
+                this.closeModal();
+
+                this.clearForm();
+
+                this.editRecordId = null;
+
+                return refreshApex(
+                    this.wiredMemberResult
+                );
+            });
+        }
+
+        // CREATE
+        else{
+
+            createMember({
+
+                name: this.memberName,
+
+                familyId: this.selectedFamilyId,
+
+                address: this.address,
+
+                age: this.age,
+
+                phone: this.phone
+            })
+
+            .then(() => {
+
+                this.showToast(
+                    'Success',
+                    'Member Added',
+                    'success'
+                );
+
+                this.closeModal();
+
+                this.clearForm();
+
+                return refreshApex(
+                    this.wiredMemberResult
+                );
+            });
+        }
+    }
+
+    // ================= MODAL =================
+
+    openCreateModal(){
+
+        this.isOpen = true;
+    }
+
+    closeModal(){
+
+        this.isOpen = false;
     }
 
     closeViewModal(){
 
-    this.showViewModal = false;
-}
-
-    saveMember(){
-        const phoneRegex = /^[0-9]{10}$/;
-
-            if(!phoneRegex.test(this.phone)){
-
-                        this.showToast(
-                            'Error',
-                            'Phone number must be exactly 10 digits',
-                            'error'
-                        );
-
-                        return;
-            }
-
-    if(!this.memberName){
-        this.showToast('Error','Member Name required','error');
-        return;
+        this.showViewModal = false;
     }
 
-    if(this.editRecordId){
-        // UPDATE
-        updateMember({
-            memberId: this.editRecordId,
-            name: this.memberName,
-            address: this.address,
-            age: this.age,
-            phone: this.phone
-        })
-        .then(() => {
-            this.showToast('Success','Member Updated','success');
-            this.closeModal();
-            this.clearForm();
-            this.editRecordId = null;
-            return refreshApex(this.wiredMemberResult);
-        });
-    } else {
-        
-        createMember({
-            name: this.memberName,
-            familyId: this.selectedFamilyId,
-            address: this.address,
-            age: this.age,
-            phone: this.phone
-        })
-        .then(() => {
-            this.showToast('Success','Member Added','success');
-            this.closeModal();
-            this.clearForm();
-            return refreshApex(this.wiredMemberResult);
-        });
+    closeTransactionModal(){
+
+        this.showTransactionModal = false;
     }
-}
+
+    closeLoanModal(){
+
+        this.showLoanModal = false;
+    }
+
+    // ================= DASHBOARD =================
+
+    openTransactionDashboard(){
+
+        this.showTransactionComponent = true;
+    }
+
+    handleTransactionBack(){
+
+        this.showTransactionComponent = false;
+    }
+
+    openLoanDashboard(){
+
+        this.showLoanDashboard = true;
+    }
+
+    closeLoanDashboard(){
+
+        this.showLoanDashboard = false;
+    }
+
+    // ================= BACK =================
+
+    goBack(){
+
+        this.dispatchEvent(
+            new CustomEvent('back')
+        );
+    }
+
+    // ================= CLEAR =================
+
     clearForm(){
+
         this.memberName = '';
+
         this.address = '';
+
         this.age = null;
+
         this.phone = '';
     }
 
-    // Payment Save
-
-   payTransaction(){
-
-    // validation
-    if(this.type === 'Contribution' && this.amount < 500){
-
-        this.showToast(
-            'Error',
-            'Contribution amount cannot be less than 500',
-            'error'
-        );
-
-        return;
-    }
-
-    createTransaction({
-
-        memberId: this.selectedMemberId,
-        paymentDate: this.paymentDate,
-        type: this.type,
-        amount: this.amount
-    })
-
-    .then(() => {
-
-        this.showToast(
-            'Success',
-            'Transaction Paid Successfully',
-            'success'
-        );
-        
-        this.dispatchEvent(
-    new CustomEvent('refreshtransactions')
-);
-
-        this.closeTransactionModal();
-        return refreshApex(this.wiredMemberResult);
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-        this.showToast(
-            'Error',
-            error.body.message,
-            'error'
-        );
-    });
-}
+    // ================= TOAST =================
 
     showToast(title, message, variant){
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+
+        this.dispatchEvent(
+
+            new ShowToastEvent({
+
+                title,
+
+                message,
+
+                variant
+            })
+        );
     }
 }

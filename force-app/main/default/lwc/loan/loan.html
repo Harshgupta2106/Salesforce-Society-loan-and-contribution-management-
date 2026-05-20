@@ -1,3 +1,27 @@
 <template>
-    
+
+    <lightning-card title="Loan Dashboard">
+
+        <div class="slds-p-around_medium">
+
+            <!-- LOAN TABLE -->
+
+            <lightning-datatable
+                key-field="Id"
+                data={loanData}
+                columns={columns}
+                onrowaction={handleRowAction}>
+            </lightning-datatable>
+
+            <br/>
+
+            <lightning-button
+                label="Back"
+                onclick={handleBack}>
+            </lightning-button>
+
+        </div>
+
+    </lightning-card>
+
 </template>

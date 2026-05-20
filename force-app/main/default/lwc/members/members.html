@@ -1,6 +1,7 @@
 <template>
 
     <!-- MEMBER DASHBOARD -->
+     <template if:false={showLoanDashboard}>
     <template if:false={showTransactionComponent}>
 
         <lightning-card title="Member DashBoard ">
@@ -23,6 +24,13 @@
                     variant="success"
                     onclick={openTransactionDashboard}>
                 </lightning-button>
+
+                <lightning-button
+                        label="Loan Dashboard"
+                        icon-name="utility:moneybag"
+                        variant="brand"
+                        onclick={openLoanDashboard}>
+                    </lightning-button>
 
             </div>
 
@@ -285,5 +293,89 @@
         </c-transactions>
 
     </template>
+
+    </template>
+    <template if:true={showLoanDashboard}>
+
+    <c-loan
+    lwc:ref="loanCmp"
+    selected-family-id={selectedFamilyId}
+    onback={closeLoanDashboard}>
+</c-loan>
+
+</template>
+
+<!-- LOAN MODAL -->
+
+<template if:true={showLoanModal}>
+
+    <section class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+
+                <h2 class="slds-text-heading_medium">
+                    Apply Loan
+                </h2>
+
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                <lightning-input
+                    label="Member Name"
+                    value={selectedMemberName}
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    type="number"
+                    label="Loan Amount"
+                    onchange={handleLoanAmount}>
+                </lightning-input>
+
+                <lightning-input
+                    label="Monthly EMI"
+                    value={calculatedEMI}
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    label="Tenure"
+                    value="24 Months"
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    label="Paperwork Fee"
+                    value="₹200"
+                    disabled>
+                </lightning-input>
+
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Cancel"
+                    onclick={closeLoanModal}>
+                </lightning-button>
+
+                <lightning-button
+                    variant="brand"
+                    label="Apply"
+                    onclick={applyLoan}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
 
 </template>

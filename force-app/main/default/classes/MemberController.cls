@@ -57,4 +57,33 @@ public static void deleteMember(Id memberId){
 
     update mem;
   }
+
+  @AuraEnabled(cacheable=true)
+public static Loan__c getActiveLoan(Id memberId){
+
+    List<Loan__c> loanList = [
+
+        SELECT Id,
+               EMI__c,
+               loan_status__c,
+               Paid_EMI_Count__c,
+               Remaining_EMI__c
+
+        FROM Loan__c
+
+        WHERE member__c = :memberId
+
+        AND loan_status__c = 'Active'
+
+        LIMIT 1
+    ];
+
+    if(!loanList.isEmpty()){
+
+        return loanList[0];
+    }
+
+    return null;
+}
+
 }
