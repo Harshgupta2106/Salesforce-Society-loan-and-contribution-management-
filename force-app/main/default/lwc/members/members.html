@@ -287,6 +287,7 @@
     <template if:true={showTransactionComponent}>
 
         <c-transactions
+            lwc:ref="transactionCmp"
             selected-family-id={selectedFamilyId}
             onback={handleTransactionBack}
             onrefreshtransactions={handleRefreshTransactions}>

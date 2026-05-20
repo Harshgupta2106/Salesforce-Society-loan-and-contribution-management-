@@ -59,6 +59,14 @@ wiredTransactions(result){
     refreshApex(this.wiredTransactionResult);
 }
 
+    @api
+        refreshTransactionData(){
+
+            return refreshApex(
+                this.wiredTransactionResult
+            );
+        }
+
     goBack(){
 
         this.dispatchEvent(

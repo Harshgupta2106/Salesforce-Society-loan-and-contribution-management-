@@ -397,75 +397,89 @@ export default class Member extends LightningElement {
 
     payTransaction(){
 
-        if(this.type === 'Contribution'
-            && this.amount < 500){
+    // Contribution validation
+    if(
+        this.type === 'Contribution'
+        && this.amount < 500
+    ){
 
-            this.showToast(
-                'Error',
-                'Contribution cannot be less than ₹500',
-                'error'
-            );
+        this.showToast(
+            'Error',
+            'Contribution cannot be less than ₹500',
+            'error'
+        );
 
-            return;
-        }
-
-        createTransaction({
-
-            memberId: this.selectedMemberId,
-
-            type: this.type,
-
-            amount: this.amount,
-
-            paymentDate: this.paymentDate
-        })
-
-        .then(() => {
-
-            if(this.type === 'EMI'
-                && this.activeLoanId){
-
-                return updateLoanEMI({
-
-                    loanId: this.activeLoanId
-                });
-            }
-        })
-
-        .then(() => {
-
-            this.showToast(
-                'Success',
-                'Payment Successful',
-                'success'
-            );
-                this.closeTransactionModal();
-
-                this.showLoanDashboard = false;
-
-                 setTimeout(() => {
-
-                 this.showLoanDashboard = true;
-
-                  }, 100);
-
-                return refreshApex(
-                    this.wiredMemberResult
-                );
-        })
-
-        .catch(error => {
-
-            console.error(error);
-
-            this.showToast(
-                'Error',
-                error.body.message,
-                'error'
-            );
-        });
+        return;
     }
 
+    // SAVE TRANSACTION
+    createTransaction({
+
+        memberId: this.selectedMemberId,
+
+        type: this.type,
+
+        amount: this.amount,
+
+        paymentDate: this.paymentDate
+    })
+
+    // EMI UPDATE
+    .then(() => {
+
+        if(
+            this.type === 'EMI'
+            && this.activeLoanId
+        ){
+
+            return updateLoanEMI({
+
+                loanId: this.activeLoanId
+            });
+        }
+
+        return null;
+    })
+
+    // AFTER EVERYTHING COMPLETE
+    .then(() => {
+
+        this.showToast(
+            'Success',
+            'Payment Successful',
+            'success'
+        );
+
+        this.closeTransactionModal();
+
+        // MEMBER TABLE REFRESH
+        refreshApex(
+            this.wiredMemberResult
+        );
+
+        // LOAN DASHBOARD REFRESH
+        if(
+            this.type === 'EMI'
+            && this.refs.loanCmp
+        ){
+
+            this.refs.loanCmp
+                .handleRefresh();
+        }
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        this.showToast(
+            'Error',
+            error.body.message,
+            'error'
+        );
+    });
+}
+                
     // ================= DELETE =================
 
     async deleteMemberRecord(memberId){

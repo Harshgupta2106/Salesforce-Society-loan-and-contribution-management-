@@ -1,8 +1,16 @@
 import { LightningElement, api, wire } from 'lwc';
-import getLoansByFamily from '@salesforce/apex/LoanController.getLoansByFamily';
-import payEMI from '@salesforce/apex/LoanController.payEMI';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { refreshApex } from '@salesforce/apex';
+
+import getLoansByFamily
+from '@salesforce/apex/LoanController.getLoansByFamily';
+
+import payEMI
+from '@salesforce/apex/LoanController.payEMI';
+
+import { ShowToastEvent }
+from 'lightning/platformShowToastEvent';
+
+import { refreshApex }
+from '@salesforce/apex';
 
 export default class Loan extends LightningElement {
 
@@ -87,7 +95,11 @@ export default class Loan extends LightningElement {
                 };
             });
 
-        } else if(result.error){
+            // IMPORTANT
+            this.loanData = [...this.loanData];
+        }
+
+        else if(result.error){
 
             console.error(result.error);
         }
@@ -97,43 +109,50 @@ export default class Loan extends LightningElement {
 
     handleRowAction(event){
 
-    const actionName =
-        event.detail.action.name;
+        const actionName =
+            event.detail.action.name;
 
-    const row =
-        event.detail.row;
+        const row =
+            event.detail.row;
 
-    if(actionName === 'pay_emi'){
+        if(actionName === 'pay_emi'){
 
-        payEMI({
-            loanId: row.Id
-        })
+            payEMI({
+                loanId: row.Id
+            })
 
-        .then(() => {
+            .then(() => {
 
-            this.showToast(
-                'Success',
-                'EMI Paid Successfully',
-                'success'
-            );
+                this.showToast(
+                    'Success',
+                    'EMI Paid Successfully',
+                    'success'
+                );
 
-            return refreshApex(
-                this.wiredLoanResult
-            );
-        })
+                return refreshApex(
+                    this.wiredLoanResult
+                );
+            })
 
-        .catch(error => {
+            .then(() => {
 
-            console.error(error);
+                // FORCE UI REFRESH
+                this.loanData = [...this.loanData];
+            })
 
-            this.showToast(
-                'Error',
-                error.body.message,
-                'error'
-            );
-        });
+            .catch(error => {
+
+                console.error(error);
+
+                this.showToast(
+                    'Error',
+                    error.body.message,
+                    'error'
+                );
+            });
+        }
     }
-}
+
     // ================= BACK =================
 
     handleBack(){
@@ -143,13 +162,18 @@ export default class Loan extends LightningElement {
         );
     }
 
-// ================= refresh=================    
+    // ================= REFRESH =================
 
-    @api refreshLoanData(){
-    return refreshApex(
-        this.wiredLoanResult
-    );
-}
+    @api
+    async handleRefresh(){
+
+        await refreshApex(
+            this.wiredLoanResult
+        );
+
+        // force rerender
+        this.loanData = [...this.loanData];
+    }
 
     // ================= TOAST =================
 
@@ -158,8 +182,11 @@ export default class Loan extends LightningElement {
         this.dispatchEvent(
 
             new ShowToastEvent({
+
                 title,
+
                 message,
+
                 variant
             })
         );
